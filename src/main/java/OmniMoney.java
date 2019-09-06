@@ -10,7 +10,7 @@ import java.util.List;
 
 import static org.bitcoinj.core.Utils.HEX;
 
-public class Bitcoinj {
+public class OmniMoney {
 
     public static void main(String[] args) {
 
@@ -22,29 +22,34 @@ public class Bitcoinj {
             throwable.printStackTrace();
         }
 
+        String A01 = "mv62bK24SCfAd2vMg6adZS8nGRuEZ8inDz";
+        String A01fromPrivateKey = "cStArXzvVNwqUEBjAeuYeNCzrN1CLcE7EZbJKq9WouGmcvPwQwi9";
+
+        // 返回omin资产的账户
+        String to = "moneyqMan7uh8FqdCA2BV5yZ8qVrc9ikLP";
+
         // local regtest network
         NetworkParameters params = RegTestParams.get();
 
         // 私钥
-        DumpedPrivateKey dumpedPrivateKey = DumpedPrivateKey.fromBase58(params, Constants.coinbasePrivate);
+        DumpedPrivateKey dumpedPrivateKey = DumpedPrivateKey.fromBase58(params, A01fromPrivateKey);
         ECKey ecKey = dumpedPrivateKey.getKey();
 
-        Address fromAddress = LegacyAddress.fromBase58(params, Constants.coinbase);
-
+        Address fromAddress = LegacyAddress.fromBase58(params, A01);
         // 接收地址
-        Address receiveAddress = LegacyAddress.fromBase58(params, Constants.A01);
+        Address receiveAddress = LegacyAddress.fromBase58(params, to);
 
         List<UTXO> utxos = new ArrayList<UTXO>();
         long totalMoney = 0;
 
-        Coin amount = Coin.COIN.multiply(10);
+        Coin amount = Coin.COIN.multiply(1);
         System.out.println("amount : " + amount);
 
         Coin fee = Coin.CENT;
         System.out.println("fee : " + fee);
 
         try {
-            Object listunspent = utils.listunspent(0,9999, new String[]{Constants.coinbase}, true);
+            Object listunspent = utils.listunspent(0,9999, new String[]{A01}, false);
             System.out.println("listunspent: " + JSON.toJSON(listunspent).toString());
             JSONArray listunspentArray = JSONArray.parseArray(JSON.toJSON(listunspent).toString());
 
@@ -62,9 +67,6 @@ public class Bitcoinj {
                         vo.getAddress());
                 utxos.add(uo);
                 totalMoney +=uo.getValue().getValue();
-                if (totalMoney>=(amount.getValue() + fee.getValue())){
-                    break;
-                }
             }
         } catch (Throwable throwable) {
             throwable.printStackTrace();
@@ -72,7 +74,6 @@ public class Bitcoinj {
 
         // 构建交易
         Transaction tx = new Transaction(params);
-
         Coin total = Coin.valueOf(totalMoney);
         System.out.println("total : " + total);
 
@@ -97,14 +98,8 @@ public class Bitcoinj {
         try {
             Object sendrawtransaction = utils.sendrawtransaction(data);
             System.out.println("sendrawtransaction: " + JSON.toJSON(sendrawtransaction).toString());
-
-            //            挖矿到地址
-            Object blocks = utils.generatetoaddress(1, Constants.coinbase);
-            System.out.println("generatetoaddress: " + JSON.toJSON(blocks));
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
-
-
     }
 }

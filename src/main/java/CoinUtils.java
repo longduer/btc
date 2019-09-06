@@ -84,26 +84,46 @@ public class CoinUtils {
 
     /**
      * 获取地址下未花费的币量
-     *
+     *  listunspent ( minconf maxconf  ["addresses",...] [include_unsafe] [query_options])
      * @param minconf
      * @param maxconf
-     * @param address
+     * @param addresses
      * @return
      * @throws Throwable
      */
-    public Object listunspent(int minconf, int maxconf, String address) throws Throwable {
-        String[] addresss = new String[]{address};
-        return client.invoke("listunspent", new Object[]{minconf, maxconf, addresss}, Object.class);
+    public Object listunspent(int minconf, int maxconf, String [] addresses, boolean include_unsafe ) throws Throwable {
+        return client.invoke("listunspent", new Object[]{minconf, maxconf, addresses}, Object.class);
     }
+
+    /**
+     * listlockunspent
+     *
+     * @return
+     * @throws Throwable
+     */
+    public Object listlockunspent() throws Throwable {
+        return client.invoke("listlockunspent", new Object[]{}, Object.class);
+    }
+
+    /**
+     * listaddressgroupings
+     *
+     * @return
+     * @throws Throwable
+     */
+    public Object listaddressgroupings() throws Throwable {
+        return client.invoke("listaddressgroupings", new Object[]{}, Object.class);
+    }
+
 
     /**
      * 生成新的接收地址
      *
-     * @return
+     * @return getnewaddress
      * @throws Throwable
      */
-    public Object getNewaddress() throws Throwable {
-        return client.invoke("getnewaddress", new Object[]{}, Object.class);
+    public Object getnewaddress(String name) throws Throwable {
+        return client.invoke("getnewaddress", new Object[]{name}, Object.class);
     }
 
     /**
@@ -112,7 +132,7 @@ public class CoinUtils {
      * @return
      * @throws Throwable
      */
-    public Object getInfo() throws Throwable {
+    public Object getinfo() throws Throwable {
         return client.invoke("getinfo", new Object[]{}, Object.class);
     }
 
@@ -122,7 +142,7 @@ public class CoinUtils {
      * @return
      * @throws Throwable
      */
-    public Object getWalletInfo() throws Throwable {
+    public Object getwalletinfo() throws Throwable {
         return client.invoke("getwalletinfo", new Object[]{}, Object.class);
     }
 
@@ -132,7 +152,7 @@ public class CoinUtils {
      * @return
      * @throws Throwable
      */
-    public Object getListAccounts() throws Throwable {
+    public Object listaccounts() throws Throwable {
         return client.invoke("listaccounts", new Object[]{}, Object.class);
     }
 
@@ -142,17 +162,217 @@ public class CoinUtils {
      * @return
      * @throws Throwable
      */
-    public Object getBalance(String account, int confirmations,boolean watchOnlyIncl) throws Throwable {
+    public Object getbalance(String account, int confirmations,boolean watchOnlyIncl) throws Throwable {
         return client.invoke("getbalance", new Object[]{account, confirmations, watchOnlyIncl}, Object.class);
     }
 
     /**
-     * 获取钱包信息
+     * getblock "hash" ( verbose )
      *
      * @return
      * @throws Throwable
      */
-    public Object getBlockhash(int blockNumber) throws Throwable {
+    public Object getblock(String hash) throws Throwable {
+        return client.invoke("getblock", new Object[]{hash}, Object.class);
+    }
+
+    /**
+     * 通过区块编号获取区块Hash
+     *
+     * @return
+     * @throws Throwable
+     */
+    public Object getblockhash(int blockNumber) throws Throwable {
         return client.invoke("getblockhash", new Object[]{blockNumber}, Object.class);
     }
+
+    /**
+     * 获取区块高度getblockcount
+     *
+     * @return
+     * @throws Throwable
+     */
+    public Object getblockcount() throws Throwable {
+        return client.invoke("getblockcount", new Object[]{}, Object.class);
+    }
+
+    /**
+     * 通过账户名获得账户地址 getAddressesByAccount
+     *
+     * @return
+     * @throws Throwable
+     */
+    public Object getaddressesbyaccount(String account) throws Throwable {
+        return client.invoke("getaddressesbyaccount", new Object[]{account}, Object.class);
+    }
+
+    /**
+     * gettransaction "txid" ( includeWatchonly )
+     *
+     * @return
+     * @throws Throwable
+     */
+    public Object gettransaction(String txid) throws Throwable {
+        return client.invoke("gettransaction", new Object[]{txid}, Object.class);
+    }
+
+    /**
+     * generatetoaddress numblocks address (maxtries)
+     *
+     * @return
+     * @throws Throwable
+     */
+    public Object generatetoaddress (int number,String address) throws Throwable {
+        return client.invoke("generatetoaddress", new Object[]{number, address}, Object.class);
+    }
+
+    /**
+     * sendtoaddress "address" amount ( "comment" "comment_to" subtractfeefromamount replaceable conf_target "estimate_mode")
+     *
+     * @return
+     * @throws Throwable
+     */
+    public Object sendtoaddress (String address, int number) throws Throwable {
+        return client.invoke("sendtoaddress", new Object[]{address, number}, Object.class);
+    }
+
+
+    /**
+     *
+     * sendfrom "fromaccount" "toaddress" amount ( minconf "comment" "comment_to" )
+     * @return
+     * @throws Throwable
+     */
+    public Object sendfrom(String from , String to, float number) throws Throwable {
+        return client.invoke("sendfrom", new Object[]{from, to , number}, Object.class);
+    }
+
+
+    /**
+     *
+     * getrawmempool ( verbose )
+     * @return
+     * @throws Throwable
+     */
+    public Object getrawmempool () throws Throwable {
+        return client.invoke("getrawmempool", new Object[]{}, Object.class);
+    }
+
+    /**
+     *
+     * dumpprivkey "address"
+     * @return
+     * @throws Throwable
+     */
+    public Object dumpprivkey (String address) throws Throwable {
+        return client.invoke("dumpprivkey", new Object[]{address}, Object.class);
+    }
+
+
+    /**
+     *
+     * createrawtransaction [{"txid":"id","vout":n},...] [{"address":amount},{"data":"hex"},...] ( locktime ) ( replaceable )
+     * @return
+     * @throws Throwable
+     */
+    public Object createrawtransaction (String address) throws Throwable {
+        return client.invoke("createrawtransaction", new Object[]{address}, Object.class);
+    }
+
+    /**
+     *
+     * decoderawtransaction "hexstring" ( iswitness )
+     * @return
+     * @throws Throwable
+     */
+    public Object decoderawtransaction (String hexstring) throws Throwable {
+        return client.invoke("decoderawtransaction", new Object[]{hexstring}, Object.class);
+    }
+
+    /**
+     *
+     * signrawtransaction "hexstring" ( [{"txid":"id","vout":n,"scriptPubKey":"hex","redeemScript":"hex"},...] ["privatekey1",...] sighashtype )
+     * @return
+     * @throws Throwable
+     */
+    public Object signrawtransaction (String hexstring) throws Throwable {
+        return client.invoke("decoderawtransaction", new Object[]{hexstring}, Object.class);
+    }
+
+    /**
+     *
+     * sendrawtransaction "hexstring" ( allowhighfees )
+     * @return
+     * @throws Throwable
+     */
+    public Object sendrawtransaction (String hexstring) throws Throwable {
+        return client.invoke("sendrawtransaction", new Object[]{hexstring}, Object.class);
+    }
+
+
+
+
+    /**
+     * 通过地址获取 omni 余额
+     * omni_getbalance "address" propertyid
+     * @return
+     * @throws Throwable
+     */
+    public Object omni_getbalance(String account, int propertyid) throws Throwable {
+        return client.invoke("omni_getbalance", new Object[]{account, propertyid}, Object.class);
+    }
+
+    /**
+     * 通过地址获取 omni 余额
+     * omni_getallbalancesforaddress "address"
+     * @return
+     * @throws Throwable
+     */
+    public Object omni_getallbalancesforaddress(String address) throws Throwable {
+        return client.invoke("omni_getallbalancesforaddress", new Object[]{address}, Object.class);
+    }
+
+    /**
+     * 通过地址历史交易列表
+     * omni_listtransactions ( "address" count skip startblock endblock )
+     * @return
+     * @throws Throwable
+     */
+    public Object omni_listtransactions(String address, int count, int skip, int startblock, int endblock) throws Throwable {
+        return client.invoke("omni_listtransactions", new Object[]{address,count,skip ,startblock,endblock}, Object.class);
+    }
+
+    /**
+     * omni转账操作
+     * omni_funded_send "fromaddress" "toaddress" propertyid "amount" "feeaddress"
+     * @return
+     * @throws Throwable
+     */
+    public Object omni_funded_send(String fromaddress, String toaddress, int propertyid, int amount, String feeaddress) throws Throwable {
+        return client.invoke("omni_funded_send", new Object[]{fromaddress,toaddress,propertyid ,amount,feeaddress}, Object.class);
+    }
+
+    /**
+     * omni转账操作
+     * omni_funded_sendall "fromaddress" "toaddress" ecosystem "feeaddress"
+     * @return
+     * @throws Throwable
+     */
+    public Object omni_funded_sendall(String fromaddress, String toaddress, String ecosystem, String feeaddress) throws Throwable {
+        return client.invoke("omni_funded_sendall", new Object[]{ fromaddress, toaddress, ecosystem ,feeaddress}, Object.class);
+    }
+
+    /**
+     * omni转账操作
+     * omni_send "fromaddress" "toaddress" propertyid "amount" ( "redeemaddress" "referenceamount" )
+     * @return
+     * @throws Throwable
+     */
+    public Object omni_send(String fromaddress, String toaddress, int propertyid, int amount, String feeaddress) throws Throwable {
+        return client.invoke("omni_send", new Object[]{fromaddress,toaddress,propertyid ,amount,feeaddress}, Object.class);
+    }
+
+
+
+
 }
