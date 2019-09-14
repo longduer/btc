@@ -1,3 +1,4 @@
+import com.alibaba.fastjson.JSONArray;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.sun.org.apache.xml.internal.security.utils.Base64;
 
@@ -44,6 +45,28 @@ public class CoinUtils {
         return client.invoke("validateaddress", new Object[]{address}, Object.class);
     }
 
+    /**
+     * importaddress "address" ( "label" rescan p2sh )
+     *
+     * @param address
+     * @return
+     * @throws Throwable
+     */
+    public Object importaddress(String address) throws Throwable {
+        return client.invoke("importaddress", new Object[]{address}, Object.class);
+    }
+
+    /**
+     * importmulti "requests" ( "options" )
+     *
+     * @param requests
+     * @return
+     * @throws Throwable
+     */
+    public Object importmulti(JSONArray requests, Object option) throws Throwable {
+        return client.invoke("importmulti", new Object[]{requests, option}, Object.class);
+
+    }
 
     /**
      * 如果钱包加密需要临时解锁钱包
@@ -243,7 +266,7 @@ public class CoinUtils {
      * @return
      * @throws Throwable
      */
-    public Object sendfrom(String from , String to, float number) throws Throwable {
+    public Object sendfrom (String from , String to, float number) throws Throwable {
         return client.invoke("sendfrom", new Object[]{from, to , number}, Object.class);
     }
 
@@ -275,8 +298,8 @@ public class CoinUtils {
      * @return
      * @throws Throwable
      */
-    public Object createrawtransaction (String address) throws Throwable {
-        return client.invoke("createrawtransaction", new Object[]{address}, Object.class);
+    public Object createrawtransaction (JSONArray utxos, JSONArray outputs) throws Throwable {
+        return client.invoke("createrawtransaction", new Object[]{utxos, outputs}, Object.class);
     }
 
     /**
@@ -291,12 +314,12 @@ public class CoinUtils {
 
     /**
      *
-     * signrawtransaction "hexstring" ( [{"txid":"id","vout":n,"scriptPubKey":"hex","redeemScript":"hex"},...] ["privatekey1",...] sighashtype )
+     * signrawtransactionwithkey "hexstring" ["privatekey1",...] ( [{"txid":"id","vout":n,"scriptPubKey":"hex","redeemScript":"hex"},...] sighashtype )
      * @return
      * @throws Throwable
      */
-    public Object signrawtransaction (String hexstring) throws Throwable {
-        return client.invoke("decoderawtransaction", new Object[]{hexstring}, Object.class);
+    public Object signrawtransactionwithkey (String hexstring, JSONArray privkes, JSONArray utxos) throws Throwable {
+        return client.invoke("signrawtransactionwithkey", new Object[]{hexstring, privkes, utxos}, Object.class);
     }
 
     /**

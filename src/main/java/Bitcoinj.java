@@ -1,14 +1,6 @@
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import org.apache.commons.codec.binary.Hex;
-import org.bitcoinj.core.*;
-import org.bitcoinj.params.RegTestParams;
-import org.bitcoinj.script.Script;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.bitcoinj.core.Utils.HEX;
+import com.alibaba.fastjson.JSONObject;
 
 public class Bitcoinj {
 
@@ -22,47 +14,53 @@ public class Bitcoinj {
             throwable.printStackTrace();
         }
 
-        // local regtest network
-        NetworkParameters params = RegTestParams.get();
-
-        // 私钥
-        DumpedPrivateKey dumpedPrivateKey = DumpedPrivateKey.fromBase58(params, Constants.coinbasePrivate);
-        ECKey ecKey = dumpedPrivateKey.getKey();
-
-        Address fromAddress = LegacyAddress.fromBase58(params, Constants.coinbase);
-
-        // 接收地址
-        Address receiveAddress = LegacyAddress.fromBase58(params, Constants.A01);
-
-        List<UTXO> utxos = new ArrayList<UTXO>();
-        long totalMoney = 0;
-
-        Coin amount = Coin.COIN.multiply(10);
+        // 转账数量
+        float amount = 5;
         System.out.println("amount : " + amount);
 
-        Coin fee = Coin.CENT;
+        // 手续费
+        float fee = 0.01f;
         System.out.println("fee : " + fee);
 
+        //预总消耗 = 转账数量+手续费
+        float consumeMoney = amount+fee;
+
+        float utxoMoney = 0;
+        Object listunspent = null;
+        JSONArray listunspentArray = null;
+        // RPC创建交易时的utxo
+        JSONArray utxoJsonArray = new JSONArray();
+
+        //
+        JSONArray utxoSignJsonArray = new JSONArray();
+
         try {
-            Object listunspent = utils.listunspent(0,9999, new String[]{Constants.coinbase}, true);
-            System.out.println("listunspent: " + JSON.toJSON(listunspent).toString());
-            JSONArray listunspentArray = JSONArray.parseArray(JSON.toJSON(listunspent).toString());
+            listunspent = utils.listunspent(
+                    0,
+                    99999,
+                    new String[]{Constants.coinbase},
+                    false);
+            listunspentArray = JSONArray.parseArray(JSON.toJSON(listunspent).toString());
+            System.out.println(
+                    "size:" + listunspentArray.size() +
+                            ";listunspent: " + JSON.toJSON(listunspent).toString());
 
             // 遍历未花费的交易
-            for(int i =0; i<listunspentArray.size(); i++){
-                UnSpentUtxo2 vo = JSON.parseObject(listunspentArray.get(i).toString(),UnSpentUtxo2.class);
-                double d = vo.getAmount()*Math.pow(10,8);
-                UTXO uo = new UTXO(
-                        Sha256Hash.wrap(vo.getTxid()),
-                        vo.getVout(),
-                        Coin.valueOf(Math.round(d)),
-                        vo.getConfirmations(),
-                        false,
-                        new Script(HEX.decode(vo.getScriptPubKey())),
-                        vo.getAddress());
-                utxos.add(uo);
-                totalMoney +=uo.getValue().getValue();
-                if (totalMoney>=(amount.getValue() + fee.getValue())){
+            for (int i = 0; i < listunspentArray.size(); i++) {
+                UnSpentUtxo2 vo = JSON.parseObject(listunspentArray.get(i).toString(), UnSpentUtxo2.class);
+                utxoMoney += vo.getAmount();
+                JSONObject utxoJson = new JSONObject();
+                JSONObject utxoSignJson = new JSONObject();
+
+                utxoJson.put("txid", vo.getTxid());
+                utxoJson.put("vout", vo.getVout());
+                utxoJsonArray.add(utxoJson);
+                utxoSignJson.put("scriptPubKey", vo.getScriptPubKey());
+                utxoSignJson.put("redeemScript", vo.getRedeemScript());
+                utxoSignJson.put("amount", vo.getAmount());
+                utxoSignJson.putAll(utxoJson);
+                utxoSignJsonArray.add(utxoSignJson);
+                if (utxoMoney>= consumeMoney) {
                     break;
                 }
             }
@@ -70,41 +68,42 @@ public class Bitcoinj {
             throwable.printStackTrace();
         }
 
-        // 构建交易
-        Transaction tx = new Transaction(params);
+        System.out.println("utxoMoney : " + utxoMoney + ";用到的utxo: " + utxoJsonArray.size());
 
-        Coin total = Coin.valueOf(totalMoney);
-        System.out.println("total : " + total);
-
-        tx.addOutput(Coin.valueOf(amount.getValue()), receiveAddress); // 转出
-        // 如果需要找零 消费列表总金额 - 已经转账的金额 - 手续费
-
-        long leave  = totalMoney - amount.getValue() - fee.getValue();
-        tx.addOutput(Coin.valueOf(leave), fromAddress);
+        JSONArray outputs = new JSONArray();
+        // 转出
+        JSONObject output = new JSONObject();
+        output.put(Constants.A01,amount);
+        outputs.add(output);
+        // 找零
+        float leave = utxoMoney - consumeMoney;
+        if (leave > 0) {
+            output = new JSONObject();
+            output.put(Constants.coinbase,leave);
+            outputs.add(output);
+        }
         System.out.println("找零数额: " + leave);
 
-        for (UTXO utxo : utxos) {
-            TransactionOutPoint outPoint = new TransactionOutPoint(params, utxo.getIndex(), utxo.getHash());
-            // YOU HAVE TO CHANGE THIS
-            tx.addSignedInput(outPoint, utxo.getScript(), ecKey, Transaction.SigHash.ALL, false);
-        }
+        System.out.println("utxo " + utxoJsonArray);
+        System.out.println("outputs " + outputs);
 
-        Context context = new Context(params);
-        tx.getConfidence().setSource(TransactionConfidence.Source.NETWORK);
-        tx.setPurpose(Transaction.Purpose.USER_PAYMENT);
-        System.out.println("=== [BTC] sign success,hash is :{} ===" + tx.getTxId());
-        String data = new String(Hex.encodeHex(tx.bitcoinSerialize()));
+        System.out.println("utxoSign " + utxoSignJsonArray);
+
         try {
-            Object sendrawtransaction = utils.sendrawtransaction(data);
-            System.out.println("sendrawtransaction: " + JSON.toJSON(sendrawtransaction).toString());
+            Object createrawtransaction = utils.createrawtransaction(utxoJsonArray, outputs);
+            System.out.println("createrawtransaction: " + createrawtransaction.toString());
 
-            //            挖矿到地址
-            Object blocks = utils.generatetoaddress(1, Constants.coinbase);
-            System.out.println("generatetoaddress: " + JSON.toJSON(blocks));
+            JSONArray privKeys = new JSONArray();
+            privKeys.add(Constants.coinbasePrivate);
+
+            Object signrawtransaction = utils.signrawtransactionwithkey(createrawtransaction.toString(), privKeys ,utxoSignJsonArray);
+            JSONObject hex = JSONObject.parseObject(JSON.toJSON(signrawtransaction).toString());
+            System.out.println("signrawtransaction: " + hex.get("hex"));
+
+//            Object sendrawtransaction = utils.sendrawtransaction(hex.get("hex").toString());
+//            System.out.println("sendrawtransaction: " + JSON.toJSON(sendrawtransaction).toString());
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
-
-
     }
 }
