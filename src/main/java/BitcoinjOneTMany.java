@@ -2,7 +2,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-public class Bitcoinj {
+public class BitcoinjOneTMany {
 
     public static void main(String[] args) {
 
@@ -15,7 +15,7 @@ public class Bitcoinj {
         }
 
         // 转账数量
-        float amount = 5f;
+        float amount = 1f;
         System.out.println("amount : " + amount);
 
         // 手续费
@@ -23,8 +23,9 @@ public class Bitcoinj {
         System.out.println("fee : " + fee);
 
         //预总消耗 = 转账数量+手续费
-        float consumeMoney = amount+fee;
+        float consumeMoney = amount*2+fee;
 
+        System.out.println("consumeMoney: " + consumeMoney);
         float utxoMoney = 0;
         Object listunspent = null;
         JSONArray listunspentArray = null;
@@ -73,8 +74,14 @@ public class Bitcoinj {
         JSONArray outputs = new JSONArray();
         // 转出
         JSONObject output = new JSONObject();
-        output.put(Constants.A02, amount);
+        output.put("bcrt1qjkrtcp43kg8ewtfyp6fhnwew6ydm0fehdelm2l", amount);
         outputs.add(output);
+
+        // 转出
+        output = new JSONObject();
+        output.put("bcrt1qq3hfllve4exnsydq05y5tn8e3nav463aa5c540", amount);
+        outputs.add(output);
+
         // 找零
         float leave = utxoMoney - consumeMoney;
         if (leave > 0) {

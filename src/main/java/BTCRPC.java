@@ -1,5 +1,6 @@
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 public class BTCRPC {
 
@@ -28,9 +29,9 @@ public class BTCRPC {
 //            System.out.println("generatetoaddress: " + JSON.toJSON(blocks));
 //
             // 当前区块高度
-            Object blockCountObj = utils.getblockcount();
-            Integer blockCount = Integer.valueOf(blockCountObj.toString());
-            System.out.println("blockCount: " + blockCount);
+//            Object blockCountObj = utils.getblockcount();
+//            Integer blockCount = Integer.valueOf(blockCountObj.toString());
+//            System.out.println("blockCount: " + blockCount);
 
             // 通过区块编号查询区块hash
 //            String blockhash = utils.getblockhash(blockCount).toString();
@@ -56,14 +57,14 @@ public class BTCRPC {
 //
 //            JSONObject rescan = new JSONObject();
 //            rescan.put("rescan", false);
-
+//
 //            Object importmulti = utils.importmulti(array, rescan);
 //            System.out.println("importmulti: " + JSONObject.toJSON(importmulti));
 
             // 通过交易hash查询交易详情
-//            Object transaction = utils.gettransaction("c6920c131ef94d00710992f2ebe3c9ef92ff822c3debc11721d7b89f30758b8e");
+//            Object transaction = utils.gettransaction("4629974bb6c106ea3c5243af217832b04601782120a3f3551d063c31d44e06c0");
 //            System.out.println("transaction: " + JSON.toJSON(transaction));
-////
+//
 //            Object omni_getallbalancesforaddress = utils.omni_getallbalancesforaddress(coinbase);
 //            System.out.println("omni_getallbalancesforaddress: " + JSON.toJSON(omni_getallbalancesforaddress));
 ////
@@ -72,10 +73,18 @@ public class BTCRPC {
 //            System.out.println("getrawmempool: " + JSON.toJSON(getrawmempool));
 //
 ////            // 账户与余额列表
-            Object listaccounts = utils.listaccounts();
-            System.out.println("listaccounts: " + JSON.toJSON(listaccounts));
+//            Object listaccounts = utils.listaccounts();
+//            System.out.println("listaccounts: " + JSON.toJSON(listaccounts));
 //            // 通过地址查询utxo列表
-            Object listunspent = utils.listunspent(0,9999, new String[]{Constants.A01},true);
+            Object listunspent = utils.listunspent(0,9999, new String[]{Constants.A02},true);
+            System.out.println("listunspent size: " + JSONArray.parseArray(JSON.toJSON(listunspent).toString()).size() +
+                    ";listunspent: " + JSON.toJSON(listunspent));
+
+            listunspent = utils.listunspent(0,9999, new String[]{Constants.A03},true);
+            System.out.println("listunspent size: " + JSONArray.parseArray(JSON.toJSON(listunspent).toString()).size() +
+                    ";listunspent: " + JSON.toJSON(listunspent));
+
+            listunspent = utils.listunspent(0,9999, new String[]{"bcrt1qlpe7khkm8uqcej2m8393rqj8zx5l8qy2nwrlw9"},true);
             System.out.println("listunspent size: " + JSONArray.parseArray(JSON.toJSON(listunspent).toString()).size() +
                     ";listunspent: " + JSON.toJSON(listunspent));
 
